@@ -10,11 +10,11 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = currenciesList[0];
-  List<TickerData> tickerList = [
-    TickerData(cryptoList[0], null),
-    TickerData(cryptoList[1], null),
-    TickerData(cryptoList[2], null),
-  ];
+  List<TickerData> tickerList;
+
+  initData() {
+    tickerList = cryptoList.map((crypto) => TickerData(crypto, null)).toList();
+  }
 
   CupertinoPicker iOSPicker() {
     return CupertinoPicker(
@@ -44,6 +44,7 @@ class _PriceScreenState extends State<PriceScreen> {
   void getData(String currency) async {
     try {
       setState(() {
+        initData();
         selectedCurrency = currency;
       });
       List<TickerData> tickers =
