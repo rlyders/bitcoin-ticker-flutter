@@ -9,15 +9,15 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  String selectedCurrency = currencyUSD;
-  double bitCountLastPrice = null;
+  String selectedCurrency = currenciesList[0];
+  double bitCountLastPrice;
 
   CupertinoPicker iOSPicker() {
     return CupertinoPicker(
         backgroundColor: Colors.lightBlue,
         itemExtent: 32.0,
         onSelectedItemChanged: (selectedIndex) {
-          print(selectedIndex);
+          getData(bitcoinSymbol, currenciesList[selectedIndex]);
         },
         children: currenciesList.map((c) => Text(c)).toList());
   }
@@ -31,19 +31,18 @@ class _PriceScreenState extends State<PriceScreen> {
                 value: c,
               ))
           .toList(),
-      onChanged: (value) {
-        setState(() {
-          selectedCurrency = value;
-        });
+      onChanged: (currency) {
+        getData(bitcoinSymbol, currency);
       },
     );
   }
 
-  void getData() async {
+  void getData(String tickerSymbol, String currency) async {
     try {
-      double price = await CoinData().getCoinData('BTC', selectedCurrency);
+      double price = await CoinData().getCoinData(tickerSymbol, currency);
       setState(() {
         bitCountLastPrice = price;
+        selectedCurrency = currency;
       });
     } catch (e) {
       throw 'Failed to get coin data: $e';
@@ -53,12 +52,11 @@ class _PriceScreenState extends State<PriceScreen> {
   @override
   void initState() {
     super.initState();
-    getData();
+    getData(bitcoinSymbol, selectedCurrency);
   }
 
   @override
   Widget build(BuildContext context) {
-    getData();
     return Scaffold(
       appBar: AppBar(
         title: Text('🤑 Coin Ticker'),
@@ -78,7 +76,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = ${bitCountLastPrice == null ? '?' : bitCountLastPrice.toStringAsFixed(0)} USD',
+                  '1 BTC = ${bitCountLastPrice == null ? '?' : bitCountLastPrice.toStringAsFixed(0)} $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,

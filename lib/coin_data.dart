@@ -34,7 +34,6 @@ const List<String> cryptoList = [
 const String bitcoinAverageUrl =
     'https://apiv2.bitcoinaverage.com/indices/global/ticker';
 
-const String currencyUSD = 'USD';
 const String bitcoinSymbol = 'BTC';
 
 class CoinData {
@@ -59,6 +58,6 @@ class CoinData {
 
 main() async {
   CoinData()
-      .getCoinData(bitcoinSymbol, currencyUSD)
+      .getCoinData(bitcoinSymbol, currenciesList[0])
       .then((lastPrice) => print('Last price: $lastPrice.'));
 }
