@@ -9,7 +9,8 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  String selectedCurrency = 'USD';
+  String selectedCurrency = currencyUSD;
+  double bitCountLastPrice = null;
 
   CupertinoPicker iOSPicker() {
     return CupertinoPicker(
@@ -38,8 +39,26 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+  void getData() async {
+    try {
+      double price = await CoinData().getCoinData('BTC', selectedCurrency);
+      setState(() {
+        bitCountLastPrice = price;
+      });
+    } catch (e) {
+      throw 'Failed to get coin data: $e';
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
   @override
   Widget build(BuildContext context) {
+    getData();
     return Scaffold(
       appBar: AppBar(
         title: Text('🤑 Coin Ticker'),
@@ -59,7 +78,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = ? USD',
+                  '1 BTC = ${bitCountLastPrice == null ? '?' : bitCountLastPrice.toStringAsFixed(0)} USD',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
