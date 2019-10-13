@@ -10,14 +10,18 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = currenciesList[0];
-  double bitCountLastPrice;
+  List<TickerData> tickerList = [
+    TickerData(cryptoList[0], null),
+    TickerData(cryptoList[1], null),
+    TickerData(cryptoList[2], null),
+  ];
 
   CupertinoPicker iOSPicker() {
     return CupertinoPicker(
         backgroundColor: Colors.lightBlue,
         itemExtent: 32.0,
         onSelectedItemChanged: (selectedIndex) {
-          getData(bitcoinSymbol, currenciesList[selectedIndex]);
+          getData(currenciesList[selectedIndex]);
         },
         children: currenciesList.map((c) => Text(c)).toList());
   }
@@ -32,27 +36,54 @@ class _PriceScreenState extends State<PriceScreen> {
               ))
           .toList(),
       onChanged: (currency) {
-        getData(bitcoinSymbol, currency);
+        getData(currency);
       },
     );
   }
 
-  void getData(String tickerSymbol, String currency) async {
+  void getData(String currency) async {
     try {
-      double price = await CoinData().getCoinData(tickerSymbol, currency);
       setState(() {
-        bitCountLastPrice = price;
         selectedCurrency = currency;
+      });
+      List<TickerData> tickers =
+          await CoinData().getCoinData(cryptoList, currency);
+      setState(() {
+        tickerList = tickers;
       });
     } catch (e) {
       throw 'Failed to get coin data: $e';
     }
   }
 
+  Widget getTickerSymbolWidget(TickerData ticker) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+      child: Card(
+        color: Colors.lightBlueAccent,
+        elevation: 5.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+          child: Text(
+            '1 ${ticker.symbol} = ${ticker.price == null ? '?' : ticker.price} $selectedCurrency',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    getData(bitcoinSymbol, selectedCurrency);
+    getData(selectedCurrency);
   }
 
   @override
@@ -62,39 +93,25 @@ class _PriceScreenState extends State<PriceScreen> {
         title: Text('🤑 Coin Ticker'),
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = ${bitCountLastPrice == null ? '?' : bitCountLastPrice.toStringAsFixed(0)} $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                getTickerSymbolWidget(tickerList[0]),
+                getTickerSymbolWidget(tickerList[1]),
+                getTickerSymbolWidget(tickerList[2]),
+              ],
             ),
-          ),
-          Container(
-            height: 150.0,
-            alignment: Alignment.center,
-            padding: EdgeInsets.only(bottom: 30.0),
-            color: Colors.lightBlue,
-            child: Platform.isIOS ? iOSPicker() : androidDropdown(),
-          ),
-        ],
-      ),
+            Container(
+              height: 150.0,
+              alignment: Alignment.center,
+              padding: EdgeInsets.only(bottom: 30.0),
+              color: Colors.lightBlue,
+              child: Platform.isIOS ? iOSPicker() : androidDropdown(),
+            )
+          ]),
     );
   }
 }

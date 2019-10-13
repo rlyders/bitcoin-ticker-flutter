@@ -36,28 +36,39 @@ const String bitcoinAverageUrl =
 
 const String bitcoinSymbol = 'BTC';
 
+class TickerData {
+  TickerData(this.symbol, this.price);
+  String symbol;
+  int price;
+}
+
 class CoinData {
-  Future<double> getCoinData(String symbol, String currency) async {
+  Future<List<TickerData>> getCoinData(
+      List<String> tickerSymbols, String currency) async {
+    List<TickerData> tickers = [];
     var client = new http.Client();
-    double lastPrice = 0;
     try {
-      String requestUrl = '$bitcoinAverageUrl/$symbol$currency';
-      http.Response response = await client.get(requestUrl);
-      if (response.statusCode == 200) {
-        var jsonResponse = convert.jsonDecode(response.body);
-        lastPrice = jsonResponse['last'];
-      } else {
-        throw 'Failed to get latest price: ${response.statusCode}';
+      for (String tickerSymbol in tickerSymbols) {
+        int lastPrice;
+        String requestUrl = '$bitcoinAverageUrl/$tickerSymbol$currency';
+        http.Response response = await client.get(requestUrl);
+        if (response.statusCode == 200) {
+          var jsonResponse = convert.jsonDecode(response.body);
+          lastPrice = jsonResponse['last'].round();
+          tickers.add(TickerData(tickerSymbol, lastPrice));
+        } else {
+          throw 'Failed to get latest price: ${response.statusCode}';
+        }
       }
     } finally {
       client.close();
     }
-    return lastPrice;
+    return tickers;
   }
 }
-
-main() async {
-  CoinData()
-      .getCoinData(bitcoinSymbol, currenciesList[0])
-      .then((lastPrice) => print('Last price: $lastPrice.'));
-}
+//
+//main() async {
+//  CoinData()
+//      .getCoinData(bitcoinSymbol, currenciesList[0])
+//      .then((lastPrice) => print('Last price: $lastPrice.'));
+//}
